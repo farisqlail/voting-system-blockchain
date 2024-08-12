@@ -1,52 +1,45 @@
 <template>
-  <section class="section">
-    <div class="columns is-mobile">
-      <card
-        title="Free"
-        icon="github"
-      >
-        Open source on <a href="https://github.com/buefy/buefy">
-          GitHub
-        </a>
-      </card>
-
-      <card
-        title="Responsive"
-        icon="cellphone-link"
-      >
-        <b class="has-text-grey">
-          Every
-        </b> component is responsive
-      </card>
-
-      <card
-        title="Modern"
-        icon="alert-decagram"
-      >
-        Built with <a href="https://vuejs.org/">
-          Vue.js
-        </a> and <a href="http://bulma.io/">
-          Bulma
-        </a>
-      </card>
-
-      <card
-        title="Lightweight"
-        icon="arrange-bring-to-front"
-      >
-        No other internal dependency
-      </card>
+  <div>
+    <h1>Voting System</h1>
+    <div v-if="!accountConnected">
+      <button @click="connectWallet">Connect Wallet</button>
     </div>
-  </section>
+    <div v-else>
+      <h2>Candidates</h2>
+      <CandidateList :candidates="candidates" @vote="vote" />
+    </div>
+  </div>
 </template>
 
 <script>
-import Card from '~/components/Card'
+import CandidateList from "~/components/CandidateList.vue";
+import { initWeb3, loadCandidates, voteCandidate } from "~/utils/web3";
 
 export default {
-  name: 'IndexPage',
-  components: {
-    Card
-  }
-}
+  components: { CandidateList },
+  data() {
+    return {
+      web3: null,
+      contract: null,
+      candidates: [],
+      accountConnected: false, // Perbaiki nama variabel dari accountsConnected menjadi accountConnected
+    };
+  },
+  methods: {
+    async connectWallet() {
+      const { web3, contract } = await initWeb3();
+      this.web3 = web3;
+      this.contract = contract;
+      this.accountConnected = true; // Sesuaikan dengan nama variabel yang benar
+      this.loadCandidates();
+    },
+    async loadCandidates() {
+      this.candidates = await loadCandidates(this.contract);
+    },
+    async vote(candidateId) { // Sesuaikan dengan nama metode yang benar
+      await voteCandidate(this.contract, this.web3, candidateId);
+      this.loadCandidates();
+    },
+  },
+};
 </script>
