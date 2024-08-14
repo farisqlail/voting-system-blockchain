@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voting System</title>
+  </head>
+  <body>
+    <h1>Voting System</h1>
+    <div>
+      <h2>Vote for a Candidate</h2>
+      <input type="number" id="candidateId" placeholder="Enter Candidate ID" />
+      <button onclick="vote()">Vote</button>
+    </div>
+    <div>
+      <h2>Candidate Votes</h2>
+      <button onclick="getVotes(1)">Get Votes for Candidate 1</button>
+      <button onclick="getVotes(2)">Get Votes for Candidate 2</button>
+      <div id="results"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.5.2/web3.min.js"></script>
+    <script>
+      const contractAddress = "0xDA0bab807633f07f013f94DD0E6A4F96F8742B53";
+      const abi = [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_candidateId",
+              type: "uint256",
+            },
+          ],
+          name: "vote",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "candidates",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+            {
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "voteCount",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "candidatesCount",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_candidateId",
+              type: "uint256",
+            },
+          ],
+          name: "getVotes",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "totalVotes",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          name: "voters",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+      ];
+
+      let web3;
+      let contract;
+
+      window.onload = async () => {
+        if (window.ethereum) {
+          web3 = new Web3(window.ethereum);
+          try {
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+            initializeContract();
+          } catch (error) {
+            console.error("User denied account access or error occurred");
+          }
+        } else {
+          alert("Please install MetaMask!");
+        }
+      };
+
+      function initializeContract() {
+        contract = new web3.eth.Contract(abi, contractAddress);
+      }
+
+      async function vote() {
+        if (!contract) {
+          console.error("Contract is not initialized.");
+          return;
+        }
+        const candidateId = document.getElementById("candidateId").value;
+        const accounts = await web3.eth.getAccounts();
+        try {
+          await contract.methods.vote(candidateId).send({ from: accounts[0] });
+          alert("Vote cast successfully!");
+        } catch (error) {
+          alert("An error occurred: " + error.message);
+        }
+      }
+
+      async function getVotes(candidateId) {
+        if (!contract) {
+          console.error("Contract is not initialized.");
+          return;
+        }
+        try {
+          const votes = await contract.methods.getVotes(candidateId).call();
+          document.getElementById(
+            "results"
+          ).innerText = `Candidate ${candidateId} has ${votes} votes.`;
+        } catch (error) {
+          alert("An error occurred: " + error.message);
+        }
+      }
+    </script>
+  </body>
+</html>

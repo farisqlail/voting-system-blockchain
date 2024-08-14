@@ -2,44 +2,49 @@
 pragma solidity ^0.8.0;
 
 contract Voting {
+    // Struktur untuk kandidat
     struct Candidate {
         uint id;
         string name;
         uint voteCount;
     }
 
+    // Mapping dari ID kandidat ke kandidat
     mapping(uint => Candidate) public candidates;
+
+    // Mapping untuk mencatat pemilih yang telah memberikan suara
     mapping(address => bool) public voters;
+
+    // Jumlah total kandidat
     uint public candidatesCount;
 
-    event VotedEvent (
-        uint indexed candidatesId
-    );
-    
+    // Jumlah total suara
+    uint public totalVotes;
 
     constructor() {
-        addCandidate("Candidate 1");
-        addCandidate("Candidate 2");
+        addCandidate("Alice");
+        addCandidate("Bob");
     }
 
+    // Fungsi untuk menambahkan kandidat
     function addCandidate(string memory _name) private {
         candidatesCount++;
         candidates[candidatesCount] = Candidate(candidatesCount, _name, 0);
     }
 
-    function vote(uint _candidatesId) public {
-        require(!voters[msg.sender], "You have already vote!");
-        require(_candidatesId > 0 && _candidatesId <= candidatesCount, "Invalid candidate ID!");
-        
-        voters[msg.sender] = true;
-        candidates[_candidatesId].voteCount++;
+    // Fungsi untuk memberikan suara
+    function vote(uint _candidateId) public {
+        require(!voters[msg.sender], "Anda sudah memberikan suara.");
+        require(_candidateId > 0 && _candidateId <= candidatesCount, "ID kandidat tidak valid.");
 
-        emit VotedEvent(_candidatesId);
+        voters[msg.sender] = true;
+        candidates[_candidateId].voteCount++;
+        totalVotes++;
     }
 
-    function getCandidate(uint _candidatesId) public view returns (uint, string memory, uint) {
-        require(_candidatesId > 0 && _candidatesId <= candidatesCount, "Invalid candidate ID!");
-        Candidate memory candidate = candidates[_candidatesId];
-        return (candidate.id, candidate.name, candidate.voteCount);
+    // Fungsi untuk mendapatkan jumlah suara kandidat
+    function getVotes(uint _candidateId) public view returns (uint) {
+        require(_candidateId > 0 && _candidateId <= candidatesCount, "ID kandidat tidak valid.");
+        return candidates[_candidateId].voteCount;
     }
 }
